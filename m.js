@@ -3,14 +3,21 @@ import { stdin as process_input, stdout as process_output } from 'node:process';
 import * as app from "./modules/app.js";
 export { readline };
 
-const menu_prompt = '\n\n**************************************************************************'+
+const menu_prompt = '\n\n\t**************************************************************************'+
                     '\n\t\t\tWelcome to Task Manager'+
-                    '\nEnter a number to select an operation.'+
-                    '\n1. List all tasks.'+
-                    '\n2. Add new task.'+
-                    '\n3. Update task status.'+
-                    '\n4. Remove a task.'+
-                    '\n5. Exit Task Manager.\n';
+                    '\n\tEnter a number to select an operation.'+
+                    '\n\t1. List all tasks.'+
+                    '\n\t2. Add new task.'+
+                    '\n\t3. Update task status.'+
+                    '\n\t4. Remove a task.'+
+                    '\n\t5. Exit Task Manager.\n';
+const repeat_menu_prompt = '\n\n\t**************************************************************************'+
+                           '\n\tEnter a number to select an operation.'+
+                           '\n\t1. List all tasks.'+
+                           '\n\t2. Add new task.'+
+                           '\n\t3. Update task status.'+
+                           '\n\t4. Remove a task.'+
+                           '\n\t5. Exit Task Manager.\n';
 const Newtask = {"title":"", "description":"", "status":""};
 var new_task_entry = null;
 var rl_main = null;
@@ -29,9 +36,48 @@ function AddLineEventListener() {
   rl_main.on('line', (line) => {
     switch (line.trim()) {
       
-      case '1'://feature todo
-        console.log('case 1 - List All Tasks feature');
-        //rl_main.setPrompt('*****All Tasks*****\n');
+      case '1'://feature done        
+        rl_main.removeAllListeners();
+        rl_main.setPrompt('');                  
+        
+        new Promise((resolve) => {
+          let file_content = app.Read_file_content();
+          let read_json = setInterval(() => {
+            if (file_content) {
+              clearInterval(read_json);
+              resolve(file_content);           
+            } 
+          }, 200);          
+        }).then((json_content) => {
+          return new Promise((resolve) => {
+            let tasks = [];
+            let set_prompt = '\t****************************************All Tasks****************************************\n'+
+                              `\t${"TITLE".padEnd(35)}${"DESCRIPTION".padEnd(45)}${"STATUS"}\n`+
+                              `\t${"-----".padEnd(35)}${"-----------".padEnd(45)}${"------"}\n`;
+            rl1 = new Object(rl_obj);
+            tasks = JSON.parse(json_content);
+            if (tasks.length > 0) {
+              tasks.forEach(task => {
+                const task_obj = JSON.parse(task);
+                if (typeof task_obj !== 'undefined') {  
+                  set_prompt += `\t${task_obj.title.padEnd(25)}${task_obj.description.padEnd(55)}${task_obj.status}\n`;
+                }              
+              });
+              set_prompt += repeat_menu_prompt;
+              rl1.setPrompt(set_prompt);
+              rl1.prompt();
+              let setprompt_build = setInterval(() => {
+                let setprompt_message = rl1.getPrompt();
+                if (setprompt_message) {
+                  clearInterval(setprompt_build);
+                  resolve();           
+                } 
+              }, 200);
+            }            
+          });
+        }).then(() => {
+          AddLineEventListener();
+        });
         break;
       case '2'://feature done
         rl_main.removeAllListeners();
@@ -91,7 +137,7 @@ function AddLineEventListener() {
           rl3.setPrompt('');          
           app.AsyncWriteNewTask(new_task_entry);
           rl_main = new Object(rl_obj);
-          rl_main.setPrompt(menu_prompt);
+          rl_main.setPrompt(repeat_menu_prompt);
           rl_main.prompt();
           AddLineEventListener();
         });     
@@ -108,20 +154,12 @@ function AddLineEventListener() {
         
         //console.log('Remove a task: ');
         break;
-      case '5'://feature todo
-        console.log('case 5 - exit feature');
-        break;
+      case '5': //feature done
+        process.exit(0);
       default:
         console.log(`You entered '${line.trim()}.' Please enter a corresponding number [1|2|3|4|5] to select an operation.`);
         break;
     }
-    //rl_obj.setPrompt("...");
-
-    //rl_obj.prompt();
-
-  /* }) .on('close', () => {
-    console.log('m.js rl is closed\n-----------------------------');
-    process.exit(0); */ 
   });
 }
 
