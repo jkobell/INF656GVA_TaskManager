@@ -9,15 +9,17 @@ const menu_prompt = '\n\n\t*****************************************************
                     '\n\t1. List all tasks.'+
                     '\n\t2. Add new task.'+
                     '\n\t3. Update task status.'+
-                    '\n\t4. Remove a task.'+
-                    '\n\t5. Exit Task Manager.\n';
+                    '\n\t4. Json file dump.'+
+                    '\n\t5. Remove a task. [Under Construction]'+
+                    '\n\t6. Exit Task Manager.\n';
 const repeat_menu_prompt = '\n\n\t**************************************************************************'+
                            '\n\tEnter a number to select an operation.'+
                            '\n\t1. List all tasks.'+
                            '\n\t2. Add new task.'+
                            '\n\t3. Update task status.'+
-                           '\n\t4. Remove a task.'+
-                           '\n\t5. Exit Task Manager.\n';
+                           '\n\t4. Json file dump.'+
+                           '\n\t5. Remove a task. [Under Construction]'+
+                           '\n\t6. Exit Task Manager.\n';
 const Newtask = {"title":"", "description":"", "status":""};
 var new_task_entry = null;
 var rl_main = null;
@@ -36,7 +38,7 @@ function AddLineEventListener() {
   rl_main.on('line', (line) => {
     switch (line.trim()) {
       
-      case '1'://feature done        
+      case '1'://feature done  List All Tasks      
         rl_main.removeAllListeners();
         rl_main.setPrompt('');                  
         
@@ -59,7 +61,7 @@ function AddLineEventListener() {
             if (tasks.length > 0) {
               tasks.forEach(task => {
                 const task_obj = JSON.parse(task);
-                if (typeof task_obj !== 'undefined') {  
+                if (task_obj) {  
                   set_prompt += `\t${task_obj.title.padEnd(25)}${task_obj.description.padEnd(55)}${task_obj.status}\n`;
                 }              
               });
@@ -79,19 +81,19 @@ function AddLineEventListener() {
           AddLineEventListener();
         });
         break;
-      case '2'://feature done
+      case '2'://feature done Add New Task
         rl_main.removeAllListeners();
         rl_main.setPrompt('');
         new_task_entry = null;
         new_task_entry = Object.create(Newtask);
         new Promise((resolve) => {          
           rl1 = new Object(rl_obj);
-          rl1.setPrompt('-----Add New Task-----'+
-                        '\nEnter task title: ');
+          rl1.setPrompt('\t-----Add New Task-----'+
+                        '\n\tEnter task title: ');
           rl1.prompt();
           rl1.on('line', (line) => {
             if (line) {
-              new_task_entry.title = line;
+              new_task_entry.title = line.trim();
             }
             else {
                 new_task_entry.title = 'No task title provided.'; 
@@ -103,11 +105,11 @@ function AddLineEventListener() {
             rl1.removeAllListeners();
             rl1.setPrompt('');
             rl2 = new Object(rl_obj);
-            rl2.setPrompt('\nEnter task description: ');
+            rl2.setPrompt('\n\tEnter task description: ');
             rl2.prompt();
             rl2.on('line', (line) => {
               if (line) {
-                new_task_entry.description = line;
+                new_task_entry.description = line.trim();
               }
               else {
                 new_task_entry.description = 'No task description provided.';
@@ -120,11 +122,11 @@ function AddLineEventListener() {
             rl2.removeAllListeners();
             rl2.setPrompt('');
             rl3 = new Object(rl_obj);
-            rl3.setPrompt('\nEnter task status: ');
+            rl3.setPrompt('\n\tEnter task status: ');
             rl3.prompt();
             rl3.on('line', (line) => {
                 if (line) {
-                  new_task_entry.status = line;
+                  new_task_entry.status = line.trim();
                 }
                 else {
                   new_task_entry.status = 'No task status provided.';
@@ -143,26 +145,227 @@ function AddLineEventListener() {
         });     
         break; 
       case '3'://todo
-        app.Write_log_entry('\nTest log entry - only - ASYNC.');
-        //console.log('Update task status: \n');
+        let tasks = [];
+        let task_title;
+        rl_main.removeAllListeners();
+        rl_main.setPrompt('');
+        new Promise((resolve) => {          
+          rl1 = new Object(rl_obj);
+          rl1.setPrompt(`\t-----Update Task's Status-----\n`+
+                        '\tEnter task title: ');
+          rl1.prompt();
+          rl1.on('line', (line) => {
+            if (line) { // needs validation
+              task_title = line.trim();
+              resolve();
+            }
+            else {
+              rl1.setPrompt('\n\tThe Task title entered was not valid.\n'+
+                             `\t${repeat_menu_prompt}\n` );
+              rl1.prompt();               
+              AddLineEventListener(); 
+            }            
+          });
+        }).then(() => {
+          return new Promise(async function (resolve) {
+            //let file_content = app.Read_file_content(); // move to await Sync readfile
+            let file_content = await app.AsyncReadFileContent();
+            if (file_content) {
+              resolve(file_content);
+            }
+            /* let read_json = setInterval(() => {
+              if (file_content) {
+                clearInterval(read_json);
+                resolve(file_content);           
+              } 
+            }, 200); */
+          });
+        }).then((file_content) => {
+          return new Promise(async function (resolve) {
+            //let tasks = [];
+            let matched_task_obj = null;
+            tasks = JSON.parse(file_content);
+            if (tasks.length > 0) {
+
+              let task_obj = null;
+              task_obj = await AsyncFindTask(tasks, task_title);
+
+              //let json_task = JSON.stringify(task_obj);
+              var ff = "jhgujh";
+
+
+              /* for(let index = 0; index >= tasks.length; index++) {
+
+                let task = tasks[index];
+                if (task) {
+                  task_obj = JSON.parse(task);
+                  if (task_obj && task_obj.title) {
+                    let title_to_lower = task_obj.title.toLowerCase();
+                    if (title_to_lower === task_title.toLowerCase()) {
+                      task_obj.status = "New test value";
+                      return task_obj;
+                    }
+                  }
+                }
+              } */
+
+             //tasks.forEach((task) => {
+                
+                
+                
+             //});
+                
+              //let matched_task_obj = await tasks.find(t=>t.title.toLowerCase() ===`${task_title.toLowerCase()}`);
+              /* let matched_task_obj = await tasks.filter((title) => title.toLowerCase().includes(`${task_title.toLowerCase()}`));
+              let matttt = JSON.parse(matched_task_obj);
+              let res = tasks.findIndex((elem) => elem === matched_task_obj);
+              let resu = tasks.findIndex((elem) => elem.title === matttt.title);
+              let match_index = tasks.indexOf(matched_task_obj);
+              var tt = "kjghhuij"; */
+              /* for(let index = 0; index >= tasks.length; index++) {
+                let task = tasks[index];
+                if (task) {
+                  const task_obj = JSON.parse(task);
+                  if (task_obj) {
+                    if (task_obj.title.includes(task_title)) {
+                      matched_task_obj = task_obj;
+                      break;
+                    }
+                  }
+                }                
+              } */
+              let find_task = setInterval(() => {
+                if (task_obj) {
+                  clearInterval(find_task);
+                  resolve(task_obj);           
+                } 
+              }, 200);
+            }
+          });
+        })/* .then((matched_obj) => { // make async function async function (matched_obj) [remove =>]
+          return new Promise(async function (resolve) {
+            if (matched_obj) {
+              let isDone = await app.AsyncDeleteTask(matched_obj);
+              if (isDone) {
+                resolve(matched_obj);
+              }
+            }
+          });
+        }) */.then((matched_obj) => {
+          return new Promise((resolve) => {
+            let json_task = JSON.stringify(matched_obj);
+            rl1.removeAllListeners();
+            rl1 = null;
+            rl2 = new Object(rl_obj);
+            let set_prompt = '\n\t****************************************Located Task****************************************\n'+
+                              `\t${"TITLE".padEnd(35)}${"DESCRIPTION".padEnd(45)}${"STATUS"}\n`+
+                              `\t${"-----".padEnd(35)}${"-----------".padEnd(45)}${"------"}\n`;
+            set_prompt += `\t${matched_obj.title.padEnd(25)}${matched_obj.description.padEnd(55)}${matched_obj.status}\n`;
+            set_prompt += '\n\tEnter new task status: ';
+            rl2.setPrompt(set_prompt);
+            rl2.prompt();
+            rl2.on('line', (line) => {
+              if (line) {// needs more validation [isAlphanumeric]
+                resolve(line.trim());
+              }
+              else {
+                rl2.setPrompt('\n\tThe task status entered was not valid.\n'+
+                             `\t${repeat_menu_prompt}\n` );
+                rl2.prompt();               
+                AddLineEventListener();
+              }
+            });  
+          });
+        }).then((status_update) => {
+          return new Promise(async function (resolve) {
+            //new_task_entry = null;
+            //new_task_entry = Object.create(Newtask);
+            //let updated_tasks = [];
+            let updated_tasks = await AsyncReplaceTaskStatus(tasks, task_title, status_update);
+
+            let tasks_update = setInterval(() => {
+              if (updated_tasks) {
+                clearInterval(tasks_update);
+                resolve(updated_tasks);           
+              } 
+            }, 200);
+            resolve(updated_tasks);
+          });
+        }).then((updated_tasks_to_writefile) => {
+          //return new Promise(async function (resolve) {
+            app.AsyncWriteUpdatedJson(updated_tasks_to_writefile);
+          //});
+        }).then(() => {
+          rl2.removeAllListeners();
+          rl2 = null;
+          rl3 = new Object(rl_obj);
+          rl3.setPrompt(repeat_menu_prompt);
+          rl3.prompt();
+          AddLineEventListener();
+        });
         break;
-      case '4': //todo
+      case '4': //remove after development and QA
         let file_content = app.Read_file_content();
         if (file_content) {
           console.log('FILE CONTENT', file_content);
-        }      
-        
-        //console.log('Remove a task: ');
+        }
         break;
-      case '5': //feature done
+      case '5': // ToDo Delete a task
+        console.log('\tRemove a task -- Under Construction :)');
+        break;
+      case '6': //feature done Exit
         process.exit(0);
       default:
-        console.log(`You entered '${line.trim()}.' Please enter a corresponding number [1|2|3|4|5] to select an operation.`);
+        //// needs more validation [isNumeric]
+        console.log(`\tYou entered '${line.trim()}.' Please enter a corresponding number [1|2|3|4|5|6] to select an operation.`);
         break;
     }
   });
 }
 
 AddLineEventListener();
+
+async function AsyncFindTask(tasks, task_title) {
+  return new Promise((resolve) => {
+    let task_obj = null;
+    tasks.forEach((task) => {
+      if (task) {
+        task_obj = JSON.parse(task);
+        if (task_obj && task_obj.title) {
+          let title_to_lower = task_obj.title.toLowerCase();
+          if (title_to_lower === task_title.toLowerCase()) {
+            //task_obj.status = "New test value"; remove later
+            resolve(task_obj);
+          }
+        }
+      }      
+    });
+  });
+}
+
+async function AsyncReplaceTaskStatus(tasks, task_title, task_status) {
+  return new Promise((resolve) => {
+    let task_obj = null;
+    let updated_tasks = [];
+    tasks.forEach((task) => {
+      if (task) {
+        task_obj = JSON.parse(task);
+        if (task_obj && task_obj.title) {
+          let title_to_lower = task_obj.title.toLowerCase();
+          if (title_to_lower === task_title.toLowerCase()) {
+            let updated_task;
+            task_obj.status = task_status;
+            updated_task = JSON.stringify(task_obj);            
+            updated_tasks.push(updated_task);
+          }
+          else {
+            updated_tasks.push(task);
+          }
+        }
+      }            
+    });
+    resolve(updated_tasks);
+  });
+}
 
 

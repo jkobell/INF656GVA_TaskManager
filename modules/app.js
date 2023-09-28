@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-export { Write_log_entry, Read_file_content, AsyncWriteNewTask };  
+export { Write_log_entry, Read_file_content, AsyncWriteNewTask, AsyncDeleteTask, AsyncReadFileContent, AsyncWriteUpdatedJson };  
 
 async function Write_log_entry(log_entry) { //Async logging
     if (log_entry) {
@@ -9,6 +9,17 @@ async function Write_log_entry(log_entry) { //Async logging
             }
         });
     }
+}
+
+function AsyncWriteUpdatedJson(updated_json) {
+  if (updated_json) {
+    let tasks_json = JSON.stringify(updated_json);
+    fs.writeFile('tasks.json', tasks_json, 'utf8', (err) => {
+      if (err) {
+          Write_log_entry(err);
+      }
+    });
+  }
 }
 
 async function AsyncWriteTaskJson(task_entry) { //Async append json to file
@@ -31,12 +42,68 @@ async function AsyncWriteTaskJson(task_entry) { //Async append json to file
 }
 
 async function AsyncWriteNewTask(new_task_obj) {// arg is a NewTask object
-  if (typeof new_task_obj !== "undefined") {
+  if (new_task_obj) {
     let new_task_json = JSON.stringify(new_task_obj);
     if (new_task_json) {
       await AsyncWriteTaskJson(new_task_json);
     }
   }
+}
+
+//async function AsyncDeleteTaskJson(task_json_to_remove) {
+async function AsyncDeleteTask(delete_task_obj) {
+  if (delete_task_obj) {
+    let delete_task_json = JSON.stringify(delete_task_obj);
+    if (delete_task_json) {
+      //let json_file_data = Read_file_content();
+      //return new Promise(async function (resolve) {
+        let json_file_data = await AsyncReadFileContent();
+      //});
+      
+      let tasks = [];
+      let updated_tasks = [];
+      if (json_file_data) {    
+        tasks = JSON.parse(json_file_data);
+        tasks.forEach((task) => {
+          if (task !== delete_task_json) {
+            updated_tasks.push(task);
+          }
+        });
+        if (updated_tasks.length > 0) {
+          json_file_data = JSON.stringify(updated_tasks);
+          if (json_file_data) {
+            fs.writeFile('tasks.json', json_file_data, 'utf8', (err) => {
+              if (err) {
+                  Write_log_entry(err);
+              }
+            });
+          }
+        }
+      }
+    }
+  }  
+}
+
+/* async function AsyncDeleteTask(delete_task_obj) {
+  if (delete_task_obj) {
+    let delete_task_json = JSON.stringify(delete_task_obj);
+    if (delete_task_json) {
+      await AsyncDeleteTaskJson(delete_task_json);
+    }
+  }
+} */
+
+async function AsyncReadFileContent() {
+  return new Promise((resolve) => {
+    fs.readFile('tasks.json', 'utf8', (err, data) => {
+      if (data) {
+        return resolve(data);
+      }
+      if (err) {
+        Write_log_entry(err);
+      }
+    });
+  });  
 }
 
 function Read_file_content() { //Sync read file
