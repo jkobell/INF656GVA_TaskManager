@@ -1,5 +1,5 @@
 import * as fs from 'node:fs';
-export { Write_log_entry, Read_file_content, AsyncWriteNewTask, AsyncDeleteTask, AsyncReadFileContent, AsyncWriteUpdatedJson };  
+export { Write_log_entry, Read_file_content, AsyncWriteNewTask, AsyncReadFileContent, AsyncWriteUpdatedJson };  
 
 async function Write_log_entry(log_entry) { //Async logging
     if (log_entry) {
@@ -49,17 +49,12 @@ async function AsyncWriteNewTask(new_task_obj) {// arg is a NewTask object
     }
   }
 }
-
-//async function AsyncDeleteTaskJson(task_json_to_remove) {
-async function AsyncDeleteTask(delete_task_obj) {
+//Switch case #5 -- Under Construction
+/* async function AsyncDeleteTask(delete_task_obj) {
   if (delete_task_obj) {
     let delete_task_json = JSON.stringify(delete_task_obj);
     if (delete_task_json) {
-      //let json_file_data = Read_file_content();
-      //return new Promise(async function (resolve) {
-        let json_file_data = await AsyncReadFileContent();
-      //});
-      
+      let json_file_data = await AsyncReadFileContent();
       let tasks = [];
       let updated_tasks = [];
       if (json_file_data) {    
@@ -82,15 +77,6 @@ async function AsyncDeleteTask(delete_task_obj) {
       }
     }
   }  
-}
-
-/* async function AsyncDeleteTask(delete_task_obj) {
-  if (delete_task_obj) {
-    let delete_task_json = JSON.stringify(delete_task_obj);
-    if (delete_task_json) {
-      await AsyncDeleteTaskJson(delete_task_json);
-    }
-  }
 } */
 
 async function AsyncReadFileContent() {

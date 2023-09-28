@@ -168,72 +168,23 @@ function AddLineEventListener() {
           });
         }).then(() => {
           return new Promise(async function (resolve) {
-            //let file_content = app.Read_file_content(); // move to await Sync readfile
             let file_content = await app.AsyncReadFileContent();
             if (file_content) {
               resolve(file_content);
             }
-            /* let read_json = setInterval(() => {
-              if (file_content) {
-                clearInterval(read_json);
-                resolve(file_content);           
-              } 
-            }, 200); */
           });
         }).then((file_content) => {
           return new Promise(async function (resolve) {
-            //let tasks = [];
-            let matched_task_obj = null;
             tasks = JSON.parse(file_content);
             if (tasks.length > 0) {
-
               let task_obj = null;
               task_obj = await AsyncFindTask(tasks, task_title);
-
-              //let json_task = JSON.stringify(task_obj);
-              var ff = "jhgujh";
-
-
-              /* for(let index = 0; index >= tasks.length; index++) {
-
-                let task = tasks[index];
-                if (task) {
-                  task_obj = JSON.parse(task);
-                  if (task_obj && task_obj.title) {
-                    let title_to_lower = task_obj.title.toLowerCase();
-                    if (title_to_lower === task_title.toLowerCase()) {
-                      task_obj.status = "New test value";
-                      return task_obj;
-                    }
-                  }
+              let async_find = setTimeout(() => {
+                if (!task_obj) {
+                  clearTimeout(async_find);
+                  resolve(null);
                 }
-              } */
-
-             //tasks.forEach((task) => {
-                
-                
-                
-             //});
-                
-              //let matched_task_obj = await tasks.find(t=>t.title.toLowerCase() ===`${task_title.toLowerCase()}`);
-              /* let matched_task_obj = await tasks.filter((title) => title.toLowerCase().includes(`${task_title.toLowerCase()}`));
-              let matttt = JSON.parse(matched_task_obj);
-              let res = tasks.findIndex((elem) => elem === matched_task_obj);
-              let resu = tasks.findIndex((elem) => elem.title === matttt.title);
-              let match_index = tasks.indexOf(matched_task_obj);
-              var tt = "kjghhuij"; */
-              /* for(let index = 0; index >= tasks.length; index++) {
-                let task = tasks[index];
-                if (task) {
-                  const task_obj = JSON.parse(task);
-                  if (task_obj) {
-                    if (task_obj.title.includes(task_title)) {
-                      matched_task_obj = task_obj;
-                      break;
-                    }
-                  }
-                }                
-              } */
+              }, 2000);
               let find_task = setInterval(() => {
                 if (task_obj) {
                   clearInterval(find_task);
@@ -242,45 +193,40 @@ function AddLineEventListener() {
               }, 200);
             }
           });
-        })/* .then((matched_obj) => { // make async function async function (matched_obj) [remove =>]
-          return new Promise(async function (resolve) {
-            if (matched_obj) {
-              let isDone = await app.AsyncDeleteTask(matched_obj);
-              if (isDone) {
-                resolve(matched_obj);
-              }
-            }
-          });
-        }) */.then((matched_obj) => {
+        }).then((matched_obj) => {
           return new Promise((resolve) => {
-            let json_task = JSON.stringify(matched_obj);
             rl1.removeAllListeners();
             rl1 = null;
             rl2 = new Object(rl_obj);
-            let set_prompt = '\n\t****************************************Located Task****************************************\n'+
+            if (matched_obj) {
+              let set_prompt = '\n\t****************************************Located Task****************************************\n'+
                               `\t${"TITLE".padEnd(35)}${"DESCRIPTION".padEnd(45)}${"STATUS"}\n`+
                               `\t${"-----".padEnd(35)}${"-----------".padEnd(45)}${"------"}\n`;
-            set_prompt += `\t${matched_obj.title.padEnd(25)}${matched_obj.description.padEnd(55)}${matched_obj.status}\n`;
-            set_prompt += '\n\tEnter new task status: ';
-            rl2.setPrompt(set_prompt);
-            rl2.prompt();
-            rl2.on('line', (line) => {
-              if (line) {// needs more validation [isAlphanumeric]
-                resolve(line.trim());
-              }
-              else {
-                rl2.setPrompt('\n\tThe task status entered was not valid.\n'+
+              set_prompt += `\t${matched_obj.title.padEnd(25)}${matched_obj.description.padEnd(55)}${matched_obj.status}\n`;
+              set_prompt += '\n\tEnter new task status: ';
+              rl2.setPrompt(set_prompt);
+              rl2.prompt();
+              rl2.on('line', (line) => {
+                if (line) {// needs more validation [isAlphanumeric]
+                  resolve(line.trim());
+                }
+                else {
+                  rl2.setPrompt('\n\tThe task status entered was not valid.\n'+
+                              `\t${repeat_menu_prompt}\n` );
+                  rl2.prompt();               
+                  AddLineEventListener();
+                }
+              });
+            }
+            else {
+              rl2.setPrompt('\n\tThe Task title entered was not valid.\n'+
                              `\t${repeat_menu_prompt}\n` );
-                rl2.prompt();               
-                AddLineEventListener();
-              }
-            });  
+              rl2.prompt();               
+              AddLineEventListener(); 
+            }              
           });
         }).then((status_update) => {
           return new Promise(async function (resolve) {
-            //new_task_entry = null;
-            //new_task_entry = Object.create(Newtask);
-            //let updated_tasks = [];
             let updated_tasks = await AsyncReplaceTaskStatus(tasks, task_title, status_update);
 
             let tasks_update = setInterval(() => {
@@ -292,9 +238,7 @@ function AddLineEventListener() {
             resolve(updated_tasks);
           });
         }).then((updated_tasks_to_writefile) => {
-          //return new Promise(async function (resolve) {
             app.AsyncWriteUpdatedJson(updated_tasks_to_writefile);
-          //});
         }).then(() => {
           rl2.removeAllListeners();
           rl2 = null;
@@ -309,9 +253,27 @@ function AddLineEventListener() {
         if (file_content) {
           console.log('FILE CONTENT', file_content);
         }
+        rl1 = new Object(rl_obj);
+        rl1.setPrompt(repeat_menu_prompt);
+        rl1.prompt();
+        AddLineEventListener();
         break;
       case '5': // ToDo Delete a task
-        console.log('\tRemove a task -- Under Construction :)');
+      rl1 = new Object(rl_obj);
+        let set_prompt_message = '\tRemove a task -- Under Construction :)';
+        set_prompt_message += repeat_menu_prompt;
+        rl1.setPrompt(set_prompt_message);
+        rl1.prompt();
+        AddLineEventListener();
+        
+          /* return new Promise(async function (resolve) {
+            if (matched_obj) {
+              let isDone = await app.AsyncDeleteTask(matched_obj);
+              if (isDone) {
+                resolve(matched_obj);
+              }
+            }
+          }); */        
         break;
       case '6': //feature done Exit
         process.exit(0);
@@ -340,6 +302,7 @@ async function AsyncFindTask(tasks, task_title) {
         }
       }      
     });
+    resolve(null);
   });
 }
 
