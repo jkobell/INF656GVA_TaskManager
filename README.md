@@ -6,7 +6,9 @@
 - 3). Update Task Status
 - 4). Json File Dump (For development work only)
 - 5). Remove a Task (Currently under construction)
-- 6). Exit Task Manager 
+- 6). Exit Task Manager
+### Usage
+Track personal or business tasks. Enter a task by designating a title, description, and a status. Update the status as needed. Delete a task when no longer needed. 
 
 ### Requirements
 - node.js
